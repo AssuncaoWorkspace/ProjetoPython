@@ -39,7 +39,7 @@ def main() -> None:
             print(f"Gráfico de barras salvo em: {caminho}")
 
         elif opcao == 4:
-            caminho = analisador.gerar_histograma("outputs/histograma_quantidade.png")
+            caminho = analisador.gerar_histograma("outputs/histograma_vendas.png")
             print(f"Histograma salvo em: {caminho}")
 
         elif opcao == 5:

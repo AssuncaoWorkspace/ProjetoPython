@@ -18,7 +18,7 @@ Este projeto consolida os conhecimentos do semestre. A equipe atuou como Engenhe
 projeto-integrador-python/
 │
 ├── data/
-│   ├── dados_vendas.csv
+│   ├── dados_vendas.csv       # train.csv do Kaggle Superstore Sales Dataset
 │   └── .gitkeep
 │
 ├── src/
@@ -63,20 +63,22 @@ python main.py
 
 ### 🗂️ Sobre o Dataset Escolhido
 
-* **Tema Geral:** Vendas de E-commerce
-* **Fonte de Dados (URL):** https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting
-* **Motivação:** A base representa registros de vendas de produtos em diferentes meses, categorias e segmentos. A análise buscou entender a evolução da receita, os itens mais lucrativos e a distribuição da quantidade vendida ao longo do período.
+* **Tema Geral:** Vendas de uma loja global (Superstore)
+* **Fonte de Dados (URL):** [Superstore Sales Dataset no Kaggle](https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting)
+* **Arquivo utilizado:** `train.csv`, disponibilizado no Kaggle e armazenado como `data/dados_vendas.csv`. A base possui 9.800 registros e 18 colunas; a licença indicada na página do dataset é GPL-2.0.
+* **Motivação:** A base contém vendas de produtos entre 2015 e 2018, com datas, produtos, categorias e segmentos de clientes. A análise investiga a evolução mensal da receita, os produtos com maior receita acumulada e a distribuição dos valores de venda por registro.
 
 ### 🏗️ Arquitetura e Estruturação
 
 * **Módulos / Classes Criadas:** A classe `AnalisadorDeDados` em `src/analisador.py` centraliza a leitura do dataset, a limpeza dos dados e a geração dos gráficos.
-* **Limpeza de Dados:** O dataset foi validado e limpo com `dropna()` para remover registros com campos essenciais ausentes. Essa etapa garante consistência antes da análise e da geração dos gráficos.
+* **Limpeza de Dados:** Os nomes das colunas são normalizados e os campos da análise são convertidos para tipos apropriados. As datas são interpretadas no formato dia/mês/ano; categorias textuais ausentes recebem rótulos explícitos e `dropna()` remove registros com data ou valor de venda inválido. Os 9.800 registros possuem valores válidos nos campos usados pela análise.
+* **Nota sobre o dataset:** A base não contém coluna de quantidade vendida. Por isso, o sistema analisa valores de venda por registro e não apresenta métricas de quantidade.
 
 ### 📊 Gráficos Desenvolvidos
 
 1. **Visão 1:** Gráfico de linha mostrando a evolução da receita mensal ao longo do tempo.
-2. **Visão 2:** Gráfico de barras com os 5 produtos que mais geraram receita total.
-3. **Visão 3:** Histograma da distribuição da quantidade vendida por transação.
+2. **Visão 2:** Gráfico de barras horizontais com os 5 produtos que mais geraram receita total.
+3. **Visão 3:** Histograma da distribuição dos valores de venda por registro.
 
 ---
 
@@ -90,5 +92,4 @@ O programa exibe um menu interativo com as seguintes opções:
 - 4. Gerar histograma
 - 5. Sair
 
-Os gráficos são salvos na pasta `outputs/` e podem ser consultados após a execução do programa.
-
+Os gráficos são salvos na pasta `outputs/` e podem ser consultados após a execução do programa. O CSV é o arquivo `train.csv` da fonte Kaggle indicada acima.

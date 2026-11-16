@@ -20,24 +20,44 @@ class AnalisadorDeDados:
         if not self.caminho_csv.exists():
             raise FileNotFoundError(f"Arquivo de dados não encontrado: {self.caminho_csv}")
 
-        df = pd.read_csv(self.caminho_csv)
+        dados_originais = pd.read_csv(self.caminho_csv)
+        dados_originais.columns = [
+            str(coluna).strip().lower().replace(" ", "_")
+            for coluna in dados_originais.columns
+        ]
 
-        df.columns = [str(col).strip().lower().replace(" ", "_") for col in df.columns]
-
-        colunas_esperadas = ["mes", "produto", "categoria", "segmento", "quantidade", "valor_venda"]
+        colunas_esperadas = [
+            "order_date",
+            "product_name",
+            "category",
+            "segment",
+            "sales",
+        ]
         for coluna in colunas_esperadas:
-            if coluna not in df.columns:
+            if coluna not in dados_originais.columns:
                 raise ValueError(f"A coluna '{coluna}' precisa existir no dataset para análise.")
 
-        df["mes"] = pd.to_datetime(df["mes"], errors="coerce")
-        df["quantidade"] = pd.to_numeric(df["quantidade"], errors="coerce")
-        df["valor_venda"] = pd.to_numeric(df["valor_venda"], errors="coerce")
+        df = pd.DataFrame(
+            {
+                "mes": pd.to_datetime(
+                    dados_originais["order_date"],
+                    format="%d/%m/%Y",
+                    errors="coerce",
+                ).dt.to_period("M").dt.to_timestamp(),
+                "produto": dados_originais["product_name"],
+                "categoria": dados_originais["category"],
+                "segmento": dados_originais["segment"],
+                "valor_venda": pd.to_numeric(dados_originais["sales"], errors="coerce"),
+            }
+        )
 
         df["produto"] = df["produto"].fillna("Produto não informado")
         df["categoria"] = df["categoria"].fillna("Sem categoria")
         df["segmento"] = df["segmento"].fillna("Sem segmento")
 
-        df = df.dropna(subset=["mes", "produto", "categoria", "segmento", "quantidade", "valor_venda"]).reset_index(drop=True)
+        df = df.dropna(
+            subset=["mes", "produto", "categoria", "segmento", "valor_venda"]
+        ).reset_index(drop=True)
 
         if df.empty:
             raise ValueError("O dataset ficou vazio após a limpeza inicial.")
@@ -46,14 +66,13 @@ class AnalisadorDeDados:
 
     def resumo_dados(self) -> str:
         total_vendas = self.df["valor_venda"].sum()
-        total_itens = self.df["quantidade"].sum()
         periodo = self.df["mes"].min().strftime("%b/%Y") + " a " + self.df["mes"].max().strftime("%b/%Y")
         produtos = self.df["produto"].nunique()
 
         return (
             f"Período analisado: {periodo}\n"
             f"Total de vendas: R$ {total_vendas:,.2f}\n"
-            f"Quantidade de itens vendidos: {total_itens:,.0f}\n"
+            f"Registros de venda analisados: {len(self.df):,}\n"
             f"Produtos monitorados: {produtos}"
         )
 
@@ -85,22 +104,19 @@ class AnalisadorDeDados:
             .sum()
             .sort_values("valor_venda", ascending=False)
             .head(5)
+            .sort_values("valor_venda")
         )
 
         plt.figure(figsize=(10, 6))
         sns.barplot(
             data=top_produtos,
-            x="produto",
-            y="valor_venda",
-            hue="produto",
-            palette="viridis",
-            dodge=False,
-            legend=False,
+            x="valor_venda",
+            y="produto",
+            color="#1f77b4",
         )
         plt.title("Top 5 Produtos por Receita")
-        plt.xlabel("Produto")
-        plt.ylabel("Receita em R$")
-        plt.xticks(rotation=20)
+        plt.xlabel("Receita em R$")
+        plt.ylabel("Produto")
         plt.tight_layout()
 
         destino = Path(caminho_saida)
@@ -109,13 +125,13 @@ class AnalisadorDeDados:
         plt.close()
         return str(destino)
 
-    def gerar_histograma(self, caminho_saida: str | Path = "outputs/histograma_quantidade.png") -> str:
-        dados = self.df[self.df["quantidade"] > 0]
+    def gerar_histograma(self, caminho_saida: str | Path = "outputs/histograma_vendas.png") -> str:
+        dados = self.df[self.df["valor_venda"] > 0]
 
         plt.figure(figsize=(10, 6))
-        plt.hist(dados["quantidade"], bins=12, edgecolor="black", color="#4CAF50")
-        plt.title("Distribuição da Quantidade Vendida")
-        plt.xlabel("Quantidade")
+        plt.hist(dados["valor_venda"], bins=20, edgecolor="black", color="#4CAF50")
+        plt.title("Distribuição do Valor das Vendas")
+        plt.xlabel("Valor da venda em R$")
         plt.ylabel("Frequência")
         plt.grid(axis="y", linestyle="--", alpha=0.5)
         plt.tight_layout()
