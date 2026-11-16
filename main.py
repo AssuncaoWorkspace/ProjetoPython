@@ -4,16 +4,16 @@ from src.analisador import AnalisadorDeDados
 
 
 def exibir_menu() -> None:
-    print("\n=== Sistema Analítico de Dados ===")
+    print("\n=== Análise de Dados das Flores Iris ===")
     print("1. Ver resumo do dataset")
-    print("2. Gerar gráfico de linha")
-    print("3. Gerar gráfico de barras")
-    print("4. Gerar histograma")
+    print("2. Comparar comprimento médio das pétalas por espécie")
+    print("3. Gerar dispersão das medidas das sépalas")
+    print("4. Gerar histograma do comprimento das pétalas")
     print("5. Sair")
 
 
 def main() -> None:
-    caminho_csv = Path("data/dados_vendas.csv")
+    caminho_csv = Path("data/iris.csv")
     analisador = AnalisadorDeDados(caminho_csv)
 
     while True:
@@ -31,15 +31,15 @@ def main() -> None:
             print(analisador.mostrar_dados(5))
 
         elif opcao == 2:
-            caminho = analisador.gerar_grafico_linha("outputs/grafico_linha.png")
-            print(f"Gráfico de linha salvo em: {caminho}")
+            caminho = analisador.gerar_grafico_barras("outputs/media_petala_por_especie.png")
+            print(f"Gráfico comparativo salvo em: {caminho}")
 
         elif opcao == 3:
-            caminho = analisador.gerar_grafico_barras("outputs/grafico_barras.png")
-            print(f"Gráfico de barras salvo em: {caminho}")
+            caminho = analisador.gerar_grafico_dispersao("outputs/dispersao_iris.png")
+            print(f"Gráfico de dispersão salvo em: {caminho}")
 
         elif opcao == 4:
-            caminho = analisador.gerar_histograma("outputs/histograma_vendas.png")
+            caminho = analisador.gerar_histograma("outputs/distribuicao_petalas.png")
             print(f"Histograma salvo em: {caminho}")
 
         elif opcao == 5:
@@ -55,6 +55,6 @@ if __name__ == "__main__":
         main()
     except FileNotFoundError as erro:
         print(f"Erro: {erro}")
-        print("Coloque o arquivo CSV em data/dados_vendas.csv antes de executar o sistema.")
+        print("Coloque o arquivo iris.csv na pasta data antes de executar o sistema.")
     except ValueError as erro:
         print(f"Erro na leitura do dataset: {erro}")

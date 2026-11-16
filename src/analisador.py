@@ -25,39 +25,39 @@ class AnalisadorDeDados:
             str(coluna).strip().lower().replace(" ", "_")
             for coluna in dados_originais.columns
         ]
+        dados_originais = dados_originais.rename(
+            columns={
+                "sepallengthcm": "sepal_lengthcm",
+                "sepalwidthcm": "sepal_widthcm",
+                "petallengthcm": "petal_lengthcm",
+                "petalwidthcm": "petal_widthcm",
+            }
+        )
 
         colunas_esperadas = [
-            "order_date",
-            "product_name",
-            "category",
-            "segment",
-            "sales",
+            "sepal_lengthcm",
+            "sepal_widthcm",
+            "petal_lengthcm",
+            "petal_widthcm",
+            "species",
         ]
         for coluna in colunas_esperadas:
             if coluna not in dados_originais.columns:
                 raise ValueError(f"A coluna '{coluna}' precisa existir no dataset para análise.")
 
-        df = pd.DataFrame(
-            {
-                "mes": pd.to_datetime(
-                    dados_originais["order_date"],
-                    format="%d/%m/%Y",
-                    errors="coerce",
-                ).dt.to_period("M").dt.to_timestamp(),
-                "produto": dados_originais["product_name"],
-                "categoria": dados_originais["category"],
-                "segmento": dados_originais["segment"],
-                "valor_venda": pd.to_numeric(dados_originais["sales"], errors="coerce"),
-            }
-        )
+        medidas = [
+            "sepal_lengthcm",
+            "sepal_widthcm",
+            "petal_lengthcm",
+            "petal_widthcm",
+        ]
+        for coluna in medidas:
+            dados_originais[coluna] = pd.to_numeric(
+                dados_originais[coluna],
+                errors="coerce",
+            )
 
-        df["produto"] = df["produto"].fillna("Produto não informado")
-        df["categoria"] = df["categoria"].fillna("Sem categoria")
-        df["segmento"] = df["segmento"].fillna("Sem segmento")
-
-        df = df.dropna(
-            subset=["mes", "produto", "categoria", "segmento", "valor_venda"]
-        ).reset_index(drop=True)
+        df = dados_originais[medidas + ["species"]].dropna().reset_index(drop=True)
 
         if df.empty:
             raise ValueError("O dataset ficou vazio após a limpeza inicial.")
@@ -65,58 +65,34 @@ class AnalisadorDeDados:
         return df
 
     def resumo_dados(self) -> str:
-        total_vendas = self.df["valor_venda"].sum()
-        periodo = self.df["mes"].min().strftime("%b/%Y") + " a " + self.df["mes"].max().strftime("%b/%Y")
-        produtos = self.df["produto"].nunique()
+        especies = sorted(self.df["species"].unique())
+        media_petala = self.df["petal_lengthcm"].mean()
 
         return (
-            f"Período analisado: {periodo}\n"
-            f"Total de vendas: R$ {total_vendas:,.2f}\n"
-            f"Registros de venda analisados: {len(self.df):,}\n"
-            f"Produtos monitorados: {produtos}"
+            f"Amostras analisadas: {len(self.df):,}\n"
+            f"Espécies identificadas: {len(especies)} ({', '.join(especies)})\n"
+            f"Comprimento médio da pétala: {media_petala:.2f} cm"
         )
 
-    def gerar_grafico_linha(self, caminho_saida: str | Path = "outputs/grafico_linha.png") -> str:
+    def gerar_grafico_barras(self, caminho_saida: str | Path = "outputs/media_petala_por_especie.png") -> str:
         dados = (
-            self.df.groupby("mes", as_index=False)["valor_venda"]
-            .sum()
-            .sort_values("mes")
-        )
-
-        plt.figure(figsize=(10, 6))
-        plt.plot(dados["mes"], dados["valor_venda"], marker="o", linewidth=2, color="#1f77b4")
-        plt.title("Evolução das Vendas por Mês")
-        plt.xlabel("Mês")
-        plt.ylabel("Valor em R$")
-        plt.grid(True, linestyle="--", alpha=0.5)
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-
-        destino = Path(caminho_saida)
-        destino.parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(destino, dpi=200)
-        plt.close()
-        return str(destino)
-
-    def gerar_grafico_barras(self, caminho_saida: str | Path = "outputs/grafico_barras.png") -> str:
-        top_produtos = (
-            self.df.groupby("produto", as_index=False)["valor_venda"]
-            .sum()
-            .sort_values("valor_venda", ascending=False)
-            .head(5)
-            .sort_values("valor_venda")
+            self.df.groupby("species", as_index=False)["petal_lengthcm"]
+            .mean()
+            .sort_values("petal_lengthcm", ascending=False)
         )
 
         plt.figure(figsize=(10, 6))
         sns.barplot(
-            data=top_produtos,
-            x="valor_venda",
-            y="produto",
-            color="#1f77b4",
+            data=dados,
+            x="species",
+            y="petal_lengthcm",
+            hue="species",
+            palette="viridis",
+            legend=False,
         )
-        plt.title("Top 5 Produtos por Receita")
-        plt.xlabel("Receita em R$")
-        plt.ylabel("Produto")
+        plt.title("Comprimento Médio da Pétala por Espécie")
+        plt.xlabel("Espécie")
+        plt.ylabel("Comprimento médio da pétala (cm)")
         plt.tight_layout()
 
         destino = Path(caminho_saida)
@@ -125,13 +101,48 @@ class AnalisadorDeDados:
         plt.close()
         return str(destino)
 
-    def gerar_histograma(self, caminho_saida: str | Path = "outputs/histograma_vendas.png") -> str:
-        dados = self.df[self.df["valor_venda"] > 0]
+    def gerar_grafico_dispersao(self, caminho_saida: str | Path = "outputs/dispersao_iris.png") -> str:
+        dados = self.df[
+            (self.df["sepal_lengthcm"] > 0) & (self.df["sepal_widthcm"] > 0)
+        ]
 
         plt.figure(figsize=(10, 6))
-        plt.hist(dados["valor_venda"], bins=20, edgecolor="black", color="#4CAF50")
-        plt.title("Distribuição do Valor das Vendas")
-        plt.xlabel("Valor da venda em R$")
+        sns.scatterplot(
+            data=dados,
+            x="sepal_lengthcm",
+            y="sepal_widthcm",
+            hue="species",
+            palette="viridis",
+            s=65,
+        )
+        plt.title("Relação entre Comprimento e Largura das Sépalas")
+        plt.xlabel("Comprimento da sépala (cm)")
+        plt.ylabel("Largura da sépala (cm)")
+        plt.legend(title="Espécie")
+        plt.grid(True, linestyle="--", alpha=0.4)
+        plt.tight_layout()
+
+        destino = Path(caminho_saida)
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(destino, dpi=200)
+        plt.close()
+        return str(destino)
+
+    def gerar_histograma(self, caminho_saida: str | Path = "outputs/distribuicao_petalas.png") -> str:
+        dados = self.df[self.df["petal_lengthcm"] > 0]
+
+        plt.figure(figsize=(10, 6))
+        sns.histplot(
+            data=dados,
+            x="petal_lengthcm",
+            hue="species",
+            bins=15,
+            multiple="layer",
+            alpha=0.55,
+            palette="viridis",
+        )
+        plt.title("Distribuição do Comprimento das Pétalas")
+        plt.xlabel("Comprimento da pétala (cm)")
         plt.ylabel("Frequência")
         plt.grid(axis="y", linestyle="--", alpha=0.5)
         plt.tight_layout()

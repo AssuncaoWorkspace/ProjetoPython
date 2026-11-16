@@ -8,7 +8,7 @@
 ---
 
 ## Objetivo do Projeto
-Este projeto consolida os conhecimentos do semestre. A equipe atuou como Engenheiros de Dados para desenvolver um Sistema Analítico Interativo em CLI, responsável por ler uma base de dados, processá-la com Pandas, aplicar orientação a objetos e gerar insights visuais com Matplotlib e Seaborn.
+Este projeto analisa medidas de flores Iris em um Sistema Analítico Interativo (CLI), aplicando Pandas, orientação a objetos, Matplotlib e Seaborn para comparar as três espécies da base.
 
 ---
 
@@ -18,7 +18,7 @@ Este projeto consolida os conhecimentos do semestre. A equipe atuou como Engenhe
 projeto-integrador-python/
 │
 ├── data/
-│   ├── dados_vendas.csv       # train.csv do Kaggle Superstore Sales Dataset
+│   ├── iris.csv       # train.csv do Kaggle Superstore Sales Dataset
 │   └── .gitkeep
 │
 ├── src/
@@ -39,8 +39,8 @@ projeto-integrador-python/
 
 1. Menu interativo em `main.py` com loop contínuo e tratamento de valor inválido com `try/except ValueError`.
 2. Classe `AnalisadorDeDados` em `src/analisador.py` com leitura do CSV via Pandas e limpeza com `dropna()`.
-3. Geração de pelo menos 3 gráficos diferentes usando `groupby` ou filtros booleanos antes da plotagem.
-4. Cada gráfico possui título e labels em x/y.
+3. Geração de três tipos de gráfico (barras, dispersão e histograma), usando agrupamento ou filtros booleanos antes da plotagem.
+4. Cada gráfico possui título e nomes nos eixos.
 
 ---
 
@@ -63,22 +63,21 @@ python main.py
 
 ### 🗂️ Sobre o Dataset Escolhido
 
-* **Tema Geral:** Vendas de uma loja global (Superstore)
-* **Fonte de Dados (URL):** [Superstore Sales Dataset no Kaggle](https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting)
-* **Arquivo utilizado:** `train.csv`, disponibilizado no Kaggle e armazenado como `data/dados_vendas.csv`. A base possui 9.800 registros e 18 colunas; a licença indicada na página do dataset é GPL-2.0.
-* **Motivação:** A base contém vendas de produtos entre 2015 e 2018, com datas, produtos, categorias e segmentos de clientes. A análise investiga a evolução mensal da receita, os produtos com maior receita acumulada e a distribuição dos valores de venda por registro.
+* **Tema Geral:** Medidas de flores e classificação de espécies de Iris
+* **Fonte de Dados (URL):** [Iris Species no Kaggle](https://www.kaggle.com/datasets/uciml/iris)
+* **Arquivo utilizado:** `Iris.csv`, armazenado no projeto como `data/iris.csv`. A base possui 150 amostras e seis colunas; o Kaggle identifica a licença como CC0 (domínio público).
+* **Motivação:** A base reúne medidas de sépalas e pétalas de três espécies de Iris. A análise compara essas medidas para observar como os atributos florais variam entre as espécies.
 
 ### 🏗️ Arquitetura e Estruturação
 
-* **Módulos / Classes Criadas:** A classe `AnalisadorDeDados` em `src/analisador.py` centraliza a leitura do dataset, a limpeza dos dados e a geração dos gráficos.
-* **Limpeza de Dados:** Os nomes das colunas são normalizados e os campos da análise são convertidos para tipos apropriados. As datas são interpretadas no formato dia/mês/ano; categorias textuais ausentes recebem rótulos explícitos e `dropna()` remove registros com data ou valor de venda inválido. Os 9.800 registros possuem valores válidos nos campos usados pela análise.
-* **Nota sobre o dataset:** A base não contém coluna de quantidade vendida. Por isso, o sistema analisa valores de venda por registro e não apresenta métricas de quantidade.
+* **Módulos / Classes Criadas:** A classe `AnalisadorDeDados` em `src/analisador.py` centraliza a leitura do CSV, a conversão das medidas numéricas, a limpeza e a geração dos gráficos.
+* **Limpeza de Dados:** As quatro medidas são convertidas para números e `dropna()` remove amostras com medidas ou espécie ausentes. O arquivo original contém 150 amostras das três espécies.
 
 ### 📊 Gráficos Desenvolvidos
 
-1. **Visão 1:** Gráfico de linha mostrando a evolução da receita mensal ao longo do tempo.
-2. **Visão 2:** Gráfico de barras horizontais com os 5 produtos que mais geraram receita total.
-3. **Visão 3:** Histograma da distribuição dos valores de venda por registro.
+1. **Visão 1:** Gráfico de barras comparando o comprimento médio das pétalas entre as espécies.
+2. **Visão 2:** Gráfico de dispersão da largura e do comprimento das sépalas, distinguindo as espécies por cor.
+3. **Visão 3:** Histograma da distribuição do comprimento das pétalas, separado por espécie.
 
 ---
 
@@ -87,9 +86,9 @@ python main.py
 O programa exibe um menu interativo com as seguintes opções:
 
 - 1. Ver resumo do dataset
-- 2. Gerar gráfico de linha
-- 3. Gerar gráfico de barras
-- 4. Gerar histograma
+- 2. Comparar o comprimento médio das pétalas por espécie
+- 3. Gerar gráfico de dispersão das sépalas
+- 4. Gerar histograma do comprimento das pétalas
 - 5. Sair
 
-Os gráficos são salvos na pasta `outputs/` e podem ser consultados após a execução do programa. O CSV é o arquivo `train.csv` da fonte Kaggle indicada acima.
+Os gráficos são salvos na pasta `outputs/`. O arquivo `data/iris.csv` é o CSV `Iris.csv` do dataset Kaggle indicado acima.
